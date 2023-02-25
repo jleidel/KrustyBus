@@ -244,6 +244,90 @@ private:
 
 };  // end KrustyBusIFace
 
+// --------------------------------------------
+// KrustyBus Memory NIC Interface
+//
+// This *implements* our NicAPI from above.
+// You can have multiple different types of NICs to
+// implement this NicAPI
+// --------------------------------------------
+class KrustyBusMemIFace : public KrustyBusNicAPI{
+public:
+  // Register the subcomponent
+  SST_ELI_REGISTER_SUBCOMPONENT_DERIVED(
+    KrustyBusMemIFace,
+    "KrustyBus",
+    "KrustyBusMemIFace",
+    SST_ELI_ELEMENT_VERSION(1,0,0),
+    "KrustyBus SimpleNetwork Network Interface",
+    SST::KrustyBus::KrustyBusNicAPI
+  )
+
+  // Register the parameters
+  SST_ELI_DOCUMENT_PARAMS(
+    {"clockFreq",   "Frequency of period (with units) of the clock", "1GHz" },
+    {"port", "Port to use, if loaded as an anonymous subcomponent", "network"},
+    {"verbose", "Verbosity for output (0 = nothing)", "0"}
+  )
+
+  // Register the ports
+  SST_ELI_DOCUMENT_PORTS(
+    {"network", "Port to network", {"simpleNetworkExample.nicEvent"} }
+  )
+
+  // Register the subcomponent slots
+  SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
+    {"iface", "SimpleNetwork interface to a network", "SST::Interfaces::SimpleNetwork"}
+  )
+
+  SST_ELI_DOCUMENT_STATISTICS(
+  // none defined
+  )
+
+  /// KrustyBusMemIFace: defualt constuctor
+  KrustyBusMemIFace(ComponentId_t id, Params& params);
+
+  /// KrustyBusMemIFace: default destructor
+  ~KrustyBusMemIFace();
+
+  /// KrustyBusMemIFace: callback to parent on received messages
+  virtual void setMsgHandler(Event::HandlerBase* handler);
+
+  /// KrustyBusMemIFace: init function
+  virtual void init(unsigned int phase);
+
+  /// KrustyBusMemIFace: setup function
+  virtual void setup();
+
+  /// KrustyBusMemIFace: send to the destination id
+  virtual void send(KrustyBusEvent *ev, int dest);
+
+  /// KrustyBusMemIFace: retrieve the number of destinations
+  virtual int getNumDestinations();
+
+  /// KrustyBusMemIFace: get the endpoint's network id
+  virtual SST::Interfaces::SimpleNetwork::nid_t getAddress();
+
+  /// KrustyBusMemIFace: callback function for SimpleNetwork
+  bool msgNotify(int virtualNetwork);
+
+  /// KrustyBusMemIFace: clock function
+  virtual bool clock(Cycle_t cycle);
+
+protected:
+  SST::Output out;                        ///< KrustyBusMemIFace: SST output object
+  SST::Interfaces::SimpleNetwork * iFace; ///< KrustyBusMemIFace: SST network interface
+  SST::Event::HandlerBase *msgHandler;    ///< KrustyBusMemIFace: SST message handler
+  bool initBroadcastSent;                 ///< KrustyBusMemIFace: Has the init bcast message been sent?
+  int numDest;                            ///< KrustyBusMemIFace: number of SST destinations
+  std::queue<SST::Interfaces::SimpleNetwork::Request*> sendQ; ///< KrustyBusMemIFace: buffered send queue
+  std::map<SST::Interfaces::SimpleNetwork::nid_t,uint8_t> endpointTypes;  ///<KrustyBusMemIFace: map of nid_t to endpoint type
+
+private:
+  // Parameters
+  std::string ClockFreq;      ///< KrustyBusMemIFace: clock frequency
+
+};  // end KrustyBusMemIFace
 
 } // namespace KrustyBus
 } // namespace SST
