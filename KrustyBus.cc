@@ -323,6 +323,37 @@ bool KrustyBusMemIFace::clock(Cycle_t cycle){
   return false;
 }
 
+// -------------------------------------------------
+// KrustyMem
+// -------------------------------------------------
+KrustyMem::KrustyMem(ComponentId_t id, Params& params)
+  : Component(id){
 
+  // Create a new SST output object
+  const int verbosity = params.find<int>("verbose",0);
+  out.init("KrustyMem[" + getName() + ":@p:@t]: ", verbosity, 0, SST::Output::STDOUT);
+
+  // retrieve the parameters
+  std::string ClockFreq   = params.find<std::string>("clockFreq", "1GHz");
+
+  // load the subcomponent
+  Nic = loadUserSubComponent<KrustyBusNicAPI>("network");
+  if( !Nic)
+    out.fatal(CALL_INFO, -1, "Error: no KrustyBusNicAPI object loaded into KrustyMem\n");
+  Nic->setMsgHandler(new Event::Handler<KrustyMem>(this, &KrustyMem::handleMessage));
+
+  // Tell the simulation not to end until we signal completion
+  registerAsPrimaryComponent();
+  primaryComponentDoNotEndSim();
+
+  // Register the clock handler
+  registerClock(ClockFreq,
+                new Clock::Handler<KrustyMem>(this, &KrustyMem::clock));
+}
+
+KrustyMem::~KrustyMem(){
+}
+
+void KrustyMem::handleMessage(SST::Event *ev);
 
 // EOF

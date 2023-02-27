@@ -329,6 +329,75 @@ private:
 
 };  // end KrustyBusMemIFace
 
+// --------------------------------------------
+// KrustyBus Memory Interface
+//
+// Implements the SimpleNetwork to StandardMem
+// translation
+// --------------------------------------------
+class KrustyMem : public SST::Component{
+public:
+  // register the component
+  SST_ELI_REGISTER_COMPONENT(
+    KrustyMem,
+    "KrustyBus",
+    "KrustyMem",
+    SST_ELI_ELEMENT_VERSION(1,0,0),
+    "KrustyMem: memHierarchy interface for KrustyBus",
+    COMPONENT_CATEGORY_MEMORY
+  )
+
+  // document the parameters
+  SST_ELI_DOCUMENT_PARAMS(
+    { "clockFreq",   "Frequency of period (with units) of the clock", "1GHz" }
+  )
+
+  // document the ports
+  SST_ELI_DOCUMENT_PORTS()
+
+  // document the statistics
+  SST_ELI_DOCUMENT_STATISTICS(
+  )
+
+  // document the subcomponent slots
+  SST_ELI_DOCUMENT_SUBCOMPONENT_SLOTS(
+    {"network", "Network interface", "SST::KrustyBus::KrustyBusMemIFace"},
+  )
+
+  // -- class members --
+
+  /// KrustyMem: constructor
+  KrustyMem(SST::ComponentId_t, SST::Params& params);
+
+  /// KrustyMem: destructor
+  ~KrustyMem();
+
+  /// KrustyMem: setup function
+  void setup();
+
+  /// KrustyMem: finish function
+  void finish();
+
+  /// KrustyMem: init function
+  void init();
+
+private:
+
+  /// KrustyMem: clock handler
+  bool clock(SST::Cycle_t cycle);
+
+  // KrustyMem: handle the incoming network message
+  void handleMessage(SST::Event *ev);
+
+  /// Params
+  SST::Output out;            // SST Output object for printing, messaging, etc
+
+  // -- subcomponents --
+  KrustyBusNicAPI *Nic;       ///< KrustyBus::KrustyBusNicAPI network interface controller
+
+};  // end KrustyMem
+
+
 } // namespace KrustyBus
 } // namespace SST
 
